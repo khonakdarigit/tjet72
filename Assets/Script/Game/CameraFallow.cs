@@ -20,7 +20,7 @@ public class CameraFallow : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector3 targetPosition = new Vector3(followTransform.position.x + 5f, followTransform.position.y + 1f, this.transform.position.z);
+        Vector3 targetPosition = new Vector3(followTransform.position.x + 2f, followTransform.position.y + 1f, this.transform.position.z);
 
         if (isCameraFollow) transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, smoothSpeed);
     }
