@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Sito : Assets.Script.Singleton<Sito>
 {
+    bool IsJumping = false;
     private bool isGrounded;
 
     [SerializeField] Transform feetPos;
@@ -19,6 +20,8 @@ public class Sito : Assets.Script.Singleton<Sito>
     [SerializeField] float speed = 15;
 
     private float moveInput;
+    private float LastY;
+    private bool _statCheckJumpAnimation;
 
     internal void Run(bool value)
     {
@@ -35,43 +38,72 @@ public class Sito : Assets.Script.Singleton<Sito>
     // Update is called once per frame
     void Update()
     {
+        isGrounded = Physics2D.OverlapCircle(feetPos.position, CheckRadius, whatIsGround);
         JumAnimation();
 
     }
 
-    float lastY = 0;
 
-    bool JumpToDownRunning = false;
 
     private void JumAnimation()
     {
-        isGrounded = Physics2D.OverlapCircle(feetPos.position, CheckRadius, whatIsGround);
-
         if (Input.GetKeyDown(KeyCode.Space))
         {
             Jump();
         }
 
-        //Debug.Log($"isGrounded : {isGrounded} IsJumping : {IsJumping} JumpToDownRunning : {JumpToDownRunning} lastY : {lastY} rb.velocity.y : {rb.velocity.y}");
-
-
-
-        if (IsJumping && !JumpToDownRunning && lastY > transform.position.y)
+        if (_statCheckJumpAnimation)
         {
+            if (!isGrounded && LastY > transform.position.y)
+            {
+                //Debug.Log($"isGrounded : {isGrounded} >> JumpToDown");
 
-            anima.SetTrigger("JumpToDown");
-            JumpToDownRunning = true;
+                anima.SetTrigger("JumpToDown");
 
+            }
 
         }
-
-        if (IsJumping && isGrounded && JumpToDownRunning)
+        if (isGrounded)
         {
-            IsJumping = false;
-            JumpToDownRunning = false;
+            //Debug.Log($"isGrounded : {isGrounded} >> JumpLanding");
+
             anima.SetTrigger("JumpLanding");
+            _statCheckJumpAnimation = false;
+            anima.SetBool("OnGround", true);
+
         }
-        lastY = transform.position.y;
+
+        LastY = transform.position.y;
+
+
+        //if (isGrounded && _statCheckJumpAnimation)
+        //{
+        //    _statCheckJumpAnimation = false;
+        //    LastY = 0;
+        //}
+
+        //if (_statCheckJumpAnimation)
+        //{
+
+
+        //}
+
+
+
+
+
+    }
+
+    public void StatCheckJumpAnimation()
+    {
+        if (!isGrounded)
+        {
+            //Debug.Log($"isGrounded : {isGrounded} >> StatCheckJumpAnimation");
+
+            _statCheckJumpAnimation = true;
+            anima.SetBool("OnGround", false);
+
+        }
     }
 
     void LateUpdate()
@@ -90,7 +122,8 @@ public class Sito : Assets.Script.Singleton<Sito>
         }
         else
         {
-            Run(true);
+            if (!IsJumping)
+                Run(true);
         }
     }
 
@@ -111,7 +144,7 @@ public class Sito : Assets.Script.Singleton<Sito>
 
     void Flip()
     {
-        Debug.Log($"facingRight : {facingRight} transform.localScale.X {transform.localScale.x}");
+        //Debug.Log($"facingRight : {facingRight} transform.localScale.X {transform.localScale.x}");
         facingRight = !facingRight;
         Vector3 Scaler = transform.localScale;
 
@@ -129,7 +162,6 @@ public class Sito : Assets.Script.Singleton<Sito>
         //}
     }
 
-    bool IsJumping = false;
 
     internal void Jump()
     {
@@ -138,8 +170,6 @@ public class Sito : Assets.Script.Singleton<Sito>
 
         if (isGrounded)
         {
-            IsJumping = true;
-
             rb.velocity = Vector2.up * (JumpForce /*+ Add*/);
             //Play(Audio_Jump);
             anima.SetTrigger("Jump");
